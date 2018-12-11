@@ -18,6 +18,7 @@ package org.glassfish.jersey.apache.connector;
 
 import java.util.Map;
 
+import org.apache.http.client.RedirectStrategy;
 import org.glassfish.jersey.internal.util.PropertiesClass;
 import org.glassfish.jersey.internal.util.PropertiesHelper;
 
@@ -133,6 +134,65 @@ public final class ApacheClientProperties {
      * The name of the configuration property is <tt>{@value}</tt>.
      */
     public static final String RETRY_HANDLER = "jersey.config.apache.client.retryHandler";
+
+    /**
+     * ConnectionReuseStrategy for the {@link org.apache.http.client.HttpClient}.
+     * <p/>
+     * The value MUST be an instance of {@link org.apache.http.impl.ConnectionReuseStrategy}.
+     * <p/>
+     * If the property is absent the default reuse strategy of the Apache HTTP library will be used
+     * <p/>
+     * The name of the configuration property is <tt>{@value}</tt>.
+     */
+    public static final String REUSE_STRATEGY = "jersey.config.apache.client.reuseStrategy";
+
+    /**
+     * ConnectionKeepAliveStrategy for the {@link org.apache.http.client.HttpClient}.
+     * <p/>
+     * The value MUST be an instance of {@link org.apache.http.conn.ConnectionKeepAliveStrategy}.
+     * <p/>
+     * If the property is absent the default keepalive strategy of the Apache HTTP library will be used
+     * <p/>
+     * The name of the configuration property is <tt>{@value}</tt>.
+     */
+    public static final String KEEPALIVE_STRATEGY = "jersey.config.apache.client.keepAliveStrategy";
+
+    /**
+     * ConnectionReuseStrategy for the {@link org.apache.http.client.HttpClient}.
+     * <p/>
+     * The value MUST be an instance of {@link org.apache.http.impl.ConnectionReuseStrategy}.
+     * <p/>
+     * If the property is absent the default reuse strategy of the Apache HTTP library will be used
+     * <p/>
+     * The name of the configuration property is <tt>{@value}</tt>.
+     */
+    public static final String REUSE_STRATEGY = "jersey.config.apache.client.reuseStrategy";
+
+    /**
+     * ConnectionKeepAliveStrategy for the {@link org.apache.http.client.HttpClient}.
+     * <p/>
+     * The value MUST be an instance of {@link org.apache.http.conn.ConnectionKeepAliveStrategy}.
+     * <p/>
+     * If the property is absent the default keepalive strategy of the Apache HTTP library will be used
+     * <p/>
+     * The name of the configuration property is <tt>{@value}</tt>.
+     */
+    public static final String KEEPALIVE_STRATEGY = "jersey.config.apache.client.keepAliveStrategy";
+
+    /**
+     * RedirectStrategy which can customize how redirects are handled.
+     * <p/>
+     * The value MUST be a subclass of {@link RedirectStrategy}.
+     */
+    public static final String REDIRECT_STRATEGY = "jersey.config.apache.client.redirectStrategy";
+
+    /**
+     * Strategy that closes the Apache Connection. Accepts an instance of {@link ApacheConnectionClosingStrategy}.
+     *
+     * @see ApacheConnectionClosingStrategy
+     * @since 2.30
+     */
+    public static final String CONNECTION_CLOSING_STRATEGY = "jersey.config.apache.client.connectionClosingStrategy";
 
     /**
      * Get the value of the specified property.
