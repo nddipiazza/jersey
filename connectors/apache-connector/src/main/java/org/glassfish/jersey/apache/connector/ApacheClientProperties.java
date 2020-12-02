@@ -173,6 +173,13 @@ public final class ApacheClientProperties {
     public static final String CONNECTION_CLOSING_STRATEGY = "jersey.config.apache.client.connectionClosingStrategy";
 
     /**
+     * DefaultAuthSchemeRegistry which can customize the auth scheme used.
+     * <p/>
+     * The value MUST be a subclass of {@link org.apache.http.config.Registry}.
+     */
+    public static final String DEFAULT_AUTH_SCHEME_REGISTRY = "jersey.config.apache.client.defaultAuthSchemeRegistry";
+
+    /**
      * Get the value of the specified property.
      *
      * If the property is not set or the actual property value type is not compatible with the specified type, the method will
