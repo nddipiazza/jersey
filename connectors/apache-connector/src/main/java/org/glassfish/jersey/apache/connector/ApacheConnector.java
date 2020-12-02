@@ -47,6 +47,7 @@ import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLSocketFactory;
 
+import org.apache.http.auth.AuthSchemeProvider;
 import org.apache.http.client.RedirectStrategy;
 import org.glassfish.jersey.client.ClientProperties;
 import org.glassfish.jersey.client.ClientRequest;
@@ -264,6 +265,20 @@ class ApacheConnector implements Connector {
             }
         }
 
+        Object defaultAuthSchemeRegistry = config.getProperties().get(ApacheClientProperties.DEFAULT_AUTH_SCHEME_REGISTRY);
+        if (defaultAuthSchemeRegistry != null) {
+            if (!(defaultAuthSchemeRegistry instanceof Registry)) {
+                LOGGER.log(
+                    Level.WARNING,
+                    LocalizationMessages.IGNORING_VALUE_OF_PROPERTY(
+                        ApacheClientProperties.DEFAULT_AUTH_SCHEME_REGISTRY,
+                        defaultAuthSchemeRegistry.getClass().getName(),
+                        Registry.class.getName())
+                );
+                defaultAuthSchemeRegistry = null;
+            }
+        }
+
         final SSLContext sslContext = client.getSslContext();
         final HttpClientBuilder clientBuilder = HttpClientBuilder.create();
 
@@ -334,6 +349,10 @@ class ApacheConnector implements Connector {
 
         if (redirectStrategy != null) {
             clientBuilder.setRedirectStrategy((RedirectStrategy) redirectStrategy);
+        }
+
+        if (defaultAuthSchemeRegistry != null) {
+            clientBuilder.setDefaultAuthSchemeRegistry((Registry<AuthSchemeProvider>) defaultAuthSchemeRegistry);
         }
 
         if (requestConfig.getCookieSpec() == null || !requestConfig.getCookieSpec().equals(CookieSpecs.IGNORE_COOKIES)) {
