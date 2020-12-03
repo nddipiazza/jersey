@@ -158,28 +158,6 @@ public final class ApacheClientProperties {
     public static final String KEEPALIVE_STRATEGY = "jersey.config.apache.client.keepAliveStrategy";
 
     /**
-     * ConnectionReuseStrategy for the {@link org.apache.http.client.HttpClient}.
-     * <p/>
-     * The value MUST be an instance of {@link org.apache.http.impl.ConnectionReuseStrategy}.
-     * <p/>
-     * If the property is absent the default reuse strategy of the Apache HTTP library will be used
-     * <p/>
-     * The name of the configuration property is <tt>{@value}</tt>.
-     */
-    public static final String REUSE_STRATEGY = "jersey.config.apache.client.reuseStrategy";
-
-    /**
-     * ConnectionKeepAliveStrategy for the {@link org.apache.http.client.HttpClient}.
-     * <p/>
-     * The value MUST be an instance of {@link org.apache.http.conn.ConnectionKeepAliveStrategy}.
-     * <p/>
-     * If the property is absent the default keepalive strategy of the Apache HTTP library will be used
-     * <p/>
-     * The name of the configuration property is <tt>{@value}</tt>.
-     */
-    public static final String KEEPALIVE_STRATEGY = "jersey.config.apache.client.keepAliveStrategy";
-
-    /**
      * RedirectStrategy which can customize how redirects are handled.
      * <p/>
      * The value MUST be a subclass of {@link RedirectStrategy}.
