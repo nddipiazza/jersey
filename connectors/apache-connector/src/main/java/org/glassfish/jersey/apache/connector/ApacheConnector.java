@@ -16,52 +16,11 @@
 
 package org.glassfish.jersey.apache.connector;
 
-import java.io.BufferedInputStream;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.Closeable;
-import java.io.FilterInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.net.URI;
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Future;
-import java.util.concurrent.atomic.AtomicLong;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import java.util.stream.Collectors;
-
-import javax.ws.rs.ProcessingException;
-import javax.ws.rs.client.Client;
-import javax.ws.rs.core.Configuration;
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.MultivaluedMap;
-import javax.ws.rs.core.Response;
-
-import javax.net.ssl.HostnameVerifier;
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.SSLSocketFactory;
-
-import org.glassfish.jersey.client.ClientProperties;
-import org.glassfish.jersey.client.ClientRequest;
-import org.glassfish.jersey.client.ClientResponse;
-import org.glassfish.jersey.client.RequestEntityProcessing;
-import org.glassfish.jersey.client.spi.AsyncConnectorCallback;
-import org.glassfish.jersey.client.spi.Connector;
-import org.glassfish.jersey.internal.util.PropertiesHelper;
-import org.glassfish.jersey.message.internal.HeaderUtils;
-import org.glassfish.jersey.message.internal.OutboundMessageContext;
-import org.glassfish.jersey.message.internal.ReaderWriter;
-import org.glassfish.jersey.message.internal.Statuses;
 import org.apache.http.ConnectionReuseStrategy;
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpHost;
+import org.apache.http.auth.AuthSchemeProvider;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.client.AuthCache;
@@ -69,6 +28,7 @@ import org.apache.http.client.CookieStore;
 import org.apache.http.client.CredentialsProvider;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.HttpRequestRetryHandler;
+import org.apache.http.client.RedirectStrategy;
 import org.apache.http.client.config.CookieSpecs;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -103,6 +63,46 @@ import org.apache.http.impl.io.ChunkedOutputStream;
 import org.apache.http.io.SessionOutputBuffer;
 import org.apache.http.util.TextUtils;
 import org.apache.http.util.VersionInfo;
+import org.glassfish.jersey.client.ClientProperties;
+import org.glassfish.jersey.client.ClientRequest;
+import org.glassfish.jersey.client.ClientResponse;
+import org.glassfish.jersey.client.RequestEntityProcessing;
+import org.glassfish.jersey.client.spi.AsyncConnectorCallback;
+import org.glassfish.jersey.client.spi.Connector;
+import org.glassfish.jersey.internal.util.PropertiesHelper;
+import org.glassfish.jersey.message.internal.HeaderUtils;
+import org.glassfish.jersey.message.internal.OutboundMessageContext;
+import org.glassfish.jersey.message.internal.ReaderWriter;
+import org.glassfish.jersey.message.internal.Statuses;
+
+import javax.net.ssl.HostnameVerifier;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLSocketFactory;
+import javax.ws.rs.ProcessingException;
+import javax.ws.rs.client.Client;
+import javax.ws.rs.core.Configuration;
+import javax.ws.rs.core.HttpHeaders;
+import javax.ws.rs.core.MultivaluedMap;
+import javax.ws.rs.core.Response;
+import java.io.BufferedInputStream;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.Closeable;
+import java.io.FilterInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.net.URI;
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Future;
+import java.util.concurrent.atomic.AtomicLong;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 /**
  * A {@link Connector} that utilizes the Apache HTTP Client to send and receive
@@ -249,6 +249,34 @@ class ApacheConnector implements Connector {
             }
         }
 
+        Object redirectStrategy = config.getProperties().get(ApacheClientProperties.REDIRECT_STRATEGY);
+        if (redirectStrategy != null) {
+            if (!(redirectStrategy instanceof RedirectStrategy)) {
+                LOGGER.log(
+                    Level.WARNING,
+                    LocalizationMessages.IGNORING_VALUE_OF_PROPERTY(
+                        ApacheClientProperties.REDIRECT_STRATEGY,
+                        redirectStrategy.getClass().getName(),
+                        RedirectStrategy.class.getName())
+                );
+                redirectStrategy = null;
+            }
+        }
+
+        Object defaultAuthSchemeRegistry = config.getProperties().get(ApacheClientProperties.DEFAULT_AUTH_SCHEME_REGISTRY);
+        if (defaultAuthSchemeRegistry != null) {
+            if (!(defaultAuthSchemeRegistry instanceof Registry)) {
+                LOGGER.log(
+                    Level.WARNING,
+                    LocalizationMessages.IGNORING_VALUE_OF_PROPERTY(
+                        ApacheClientProperties.DEFAULT_AUTH_SCHEME_REGISTRY,
+                        defaultAuthSchemeRegistry.getClass().getName(),
+                        Registry.class.getName())
+                );
+                defaultAuthSchemeRegistry = null;
+            }
+        }
+
         final SSLContext sslContext = client.getSslContext();
         final HttpClientBuilder clientBuilder = HttpClientBuilder.create();
 
@@ -315,6 +343,14 @@ class ApacheConnector implements Connector {
                 requestConfigBuilder.setCookieSpec(CookieSpecs.IGNORE_COOKIES);
             }
             requestConfig = requestConfigBuilder.build();
+        }
+
+        if (redirectStrategy != null) {
+            clientBuilder.setRedirectStrategy((RedirectStrategy) redirectStrategy);
+        }
+
+        if (defaultAuthSchemeRegistry != null) {
+            clientBuilder.setDefaultAuthSchemeRegistry((Registry<AuthSchemeProvider>) defaultAuthSchemeRegistry);
         }
 
         if (requestConfig.getCookieSpec() == null || !requestConfig.getCookieSpec().equals(CookieSpecs.IGNORE_COOKIES)) {
